@@ -25,7 +25,7 @@ import struct
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timezone
 from getpass import getpass
-from typing import Union, List, Dict, Optional, Any, Callable, TypeVar
+from typing import Union, List, Dict, Optional
 
 import pyrogram
 from pyrogram import raw, enums
@@ -91,17 +91,14 @@ async def parse_messages(
 ) -> List["types.Message"]:
     users = {i.id: i for i in messages.users}
     chats = {i.id: i for i in messages.chats}
-    if hasattr(messages, "topics"):
-        topics = {i.id: i for i in messages.topics}
-    else:
-        topics = None
+
     if not messages.messages:
         return types.List()
 
     parsed_messages = []
 
     for message in messages.messages:
-        parsed_messages.append(await types.Message._parse(client, message, users, chats, topics, replies=0))
+        parsed_messages.append(await types.Message._parse(client, message, users, chats, replies=0))
 
     if replies:
         messages_with_replies = {
@@ -131,11 +128,7 @@ async def parse_messages(
 
                 for reply in reply_messages:
                     if reply.id == reply_id:
-                        #if reply.forum_topic_created:
-                        #    message.reply_to_message_id = None
-                        #else:
-                        if not reply.forum_topic_created:
-                            message.reply_to_message = reply
+                        message.reply_to_message = reply
 
     return types.List(parsed_messages)
 
@@ -205,10 +198,9 @@ def unpack_inline_message_id(inline_message_id: str) -> "raw.base.InputBotInline
         )
 
 
-MIN_CHANNEL_ID = -1002147483647
+MIN_CHANNEL_ID = -1007852516352
 MAX_CHANNEL_ID = -1000000000000
 MIN_CHAT_ID = -2147483647
-MAX_USER_ID_OLD = 2147483647
 MAX_USER_ID = 999999999999
 
 
@@ -376,7 +368,3 @@ def timestamp_to_datetime(ts: Optional[int]) -> Optional[datetime]:
 
 def datetime_to_timestamp(dt: Optional[datetime]) -> Optional[int]:
     return int(dt.timestamp()) if dt else None
-
-async def run_sync(func: Callable[..., TypeVar("Result")], *args: Any, **kwargs: Any) -> TypeVar("Result"):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, functools.partial(func, *args, **kwargs))
